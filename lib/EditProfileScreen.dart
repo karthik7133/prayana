@@ -522,6 +522,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  // Updated input field to match login page styling with subtle border
   Widget _buildInputField(String label, TextEditingController controller, {bool readOnly = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,31 +537,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         SizedBox(height: 8),
         Container(
-          height: 55,
+          decoration: BoxDecoration(
+            color: readOnly ? Color(0xFFF8F8F8) : Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey[300]!,
+              width: 1.0,
+            ),
+          ),
           child: TextFormField(
             controller: controller,
             readOnly: readOnly,
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: readOnly ? Colors.grey[500] : Colors.black,
+              fontWeight: FontWeight.w400,
+              color: readOnly ? Colors.grey[500] : Color(0xFF1A1A1A),
             ),
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              border: InputBorder.none,
+              hintStyle: TextStyle(
+                color: Color(0xFF999999),
+                fontSize: 16,
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(28),
-                borderSide: BorderSide(color: Color(0xFF7ED321), width: 2),
-              ),
-              filled: true,
-              fillColor: readOnly ? Colors.grey[100] : Colors.white,
             ),
           ),
         ),
@@ -568,6 +567,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  // Updated phone field to match login page styling with subtle border
   Widget _buildPhoneField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,11 +582,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         SizedBox(height: 8),
         Container(
-          height: 55,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.grey[300]!, width: 1.5),
-            color: Colors.white,
+            color: Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey[300]!,
+              width: 1.0,
+            ),
           ),
           child: Row(
             children: [
@@ -615,9 +617,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
               Expanded(
                 child: TextFormField(
                   controller: phoneController,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF1A1A1A),
+                  ),
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     border: InputBorder.none,
                   ),
                 ),
@@ -629,27 +635,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  // Updated dropdown field to match login page styling with subtle border
   Widget _buildDropdownField(String label, String selectedValue, List<String> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 55,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.grey[300]!, width: 1.5),
-            color: Colors.white,
+            color: Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.grey[300]!,
+              width: 1.0,
+            ),
           ),
           child: DropdownButtonFormField<String>(
             value: selectedValue,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               border: InputBorder.none,
             ),
             icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: Colors.grey[600],
             ),
             items: items.map((String value) {
