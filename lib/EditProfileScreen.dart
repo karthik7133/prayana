@@ -13,7 +13,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   // Controllers for form fields
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
@@ -28,6 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   // Base API URL
   final String baseUrl = "http://35.200.140.65:5000/api/user";
+  final String authUrl = "http://35.200.140.65:5000/api/auth";
 
   @override
   void initState() {
@@ -39,7 +39,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void dispose() {
     firstNameController.dispose();
     lastNameController.dispose();
-    usernameController.dispose();
     emailController.dispose();
     phoneController.dispose();
     super.dispose();
@@ -121,30 +120,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
     // Handle phone number
     String phone = userData['mobile'] ?? '';
     if (phone.startsWith('+91')) {
-      selectedCountryCode = '+91';
+      setState(() {
+        selectedCountryCode = '+91';
+      });
       phoneController.text = phone.substring(3);
     } else if (phone.startsWith('+1')) {
-      selectedCountryCode = '+1';
+      setState(() {
+        selectedCountryCode = '+1';
+      });
       phoneController.text = phone.substring(2);
     } else if (phone.startsWith('+234')) {
-      selectedCountryCode = '+234';
+      setState(() {
+        selectedCountryCode = '+234';
+      });
       phoneController.text = phone.substring(4);
     } else if (phone.startsWith('+44')) {
-      selectedCountryCode = '+44';
+      setState(() {
+        selectedCountryCode = '+44';
+      });
       phoneController.text = phone.substring(3);
     } else {
       phoneController.text = phone;
     }
 
-    // Set username (you might want to make this editable or not based on your API)
-    usernameController.text = userData['user_id'] ?? '';
-
-    // Set other fields if available in your API response
-    selectedGender = userData['gender'] ?? 'Gender';
-    selectedBirth = userData['birth_year']?.toString() ?? 'Birth';
+    // Set other fields if available in your API response - Fixed setState calls
+    setState(() {
+      selectedGender = userData['gender'] ?? 'Gender';
+      selectedBirth = userData['birth_year']?.toString() ?? 'Birth';
+    });
   }
 
-  // Save profile changes
+  // Save profile changes - Fixed to include all fields
   Future<void> _saveProfile() async {
     try {
       setState(() {
@@ -155,18 +161,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
       // Get auth headers with token
       final headers = await TokenService.getAuthHeaders();
 
-      // Prepare update data
+      // Prepare update data with all fields
       Map<String, dynamic> updateData = {
         'name': '${firstNameController.text.trim()} ${lastNameController.text.trim()}'.trim(),
         'mobile': '$selectedCountryCode${phoneController.text.trim()}',
       };
 
-      // Add optional fields if they're not default values
-      if (selectedGender != 'Gender') {
+      // Always include gender and birth_year (even if default values)
+      if (selectedGender != 'Gender' && selectedGender.isNotEmpty) {
         updateData['gender'] = selectedGender;
       }
-      if (selectedBirth != 'Birth') {
-        updateData['birth_year'] = int.tryParse(selectedBirth);
+
+      if (selectedBirth != 'Birth' && selectedBirth.isNotEmpty) {
+        final birthYear = int.tryParse(selectedBirth);
+        if (birthYear != null) {
+          updateData['birth_year'] = birthYear;
+        }
       }
 
       print("Saving profile with data: $updateData");
@@ -229,6 +239,71 @@ class _EditProfilePageState extends State<EditProfilePage> {
         isSaving = false;
       });
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network error. Please check your connection.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  // Change Password API call
+  Future<void> _changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+    try {
+      // Get auth headers with token
+      final headers = await TokenService.getAuthHeaders();
+
+      final response = await http.post(
+        Uri.parse("$authUrl/change_password"),
+        headers: headers,
+        body: jsonEncode({
+          "current_password": currentPassword,
+          "new_password": newPassword,
+          "confirm_password": confirmPassword,
+        }),
+      );
+
+      print("Change Password API Response Status: ${response.statusCode}");
+      print("Change Password API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Password changed successfully!'),
+            backgroundColor: Color(0xFF7ED321),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else if (response.statusCode == 401) {
+        await TokenService.clearAuthData();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      } else {
+        final error = jsonDecode(response.body);
+        String errorMsg = "Failed to change password";
+
+        if (error.containsKey("detail")) {
+          if (error["detail"] is List && error["detail"].isNotEmpty) {
+            errorMsg = error["detail"][0]["msg"] ?? errorMsg;
+          } else if (error["detail"] is String) {
+            errorMsg = error["detail"];
+          }
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Change password error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Network error. Please check your connection.'),
@@ -455,11 +530,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     _buildInputField("Last Name", lastNameController),
                     SizedBox(height: 20),
 
-                    // Username (Read-only for user_id)
-                    _buildInputField("User ID", usernameController, readOnly: true),
-                    SizedBox(height: 20),
-
-                    // Email (Read-only typically)
+                    // Email (Read-only)
                     _buildInputField("Email", emailController, readOnly: true),
                     SizedBox(height: 20),
 
@@ -481,13 +552,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       height: 55,
                       child: ElevatedButton(
                         onPressed: () {
-                          // Handle change password
                           _showChangePasswordDialog();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF7ED321),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 0,
                         ),
@@ -679,27 +749,179 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  // Updated change password dialog with full functionality
   void _showChangePasswordDialog() {
+    TextEditingController currentPasswordController = TextEditingController();
+    TextEditingController newPasswordController = TextEditingController();
+    TextEditingController confirmPasswordController = TextEditingController();
+    bool isChangingPassword = false;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Change Password",
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          content: Text(
-            "Password change functionality will be implemented here.",
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                "Close",
-                style: TextStyle(color: Color(0xFF7ED321)),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Change Password",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Current Password Field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFF8F8F8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!, width: 1.0),
+                      ),
+                      child: TextFormField(
+                        controller: currentPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: 'Current Password',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // New Password Field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFF8F8F8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!, width: 1.0),
+                      ),
+                      child: TextFormField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: 'New Password',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // Confirm Password Field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFF8F8F8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!, width: 1.0),
+                      ),
+                      child: TextFormField(
+                        controller: confirmPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: 'Confirm New Password',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+
+                    // Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: isChangingPassword ? null : () {
+                              Navigator.of(context).pop();
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.grey[300]!, width: 1),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: isChangingPassword ? null : () async {
+                              String currentPassword = currentPasswordController.text.trim();
+                              String newPassword = newPasswordController.text.trim();
+                              String confirmPassword = confirmPasswordController.text.trim();
+
+                              if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Please fill all fields')),
+                                );
+                                return;
+                              }
+
+                              if (newPassword != confirmPassword) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('New passwords do not match')),
+                                );
+                                return;
+                              }
+
+                              if (newPassword.length < 6) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Password must be at least 6 characters')),
+                                );
+                                return;
+                              }
+
+                              setState(() {
+                                isChangingPassword = true;
+                              });
+
+                              await _changePassword(currentPassword, newPassword, confirmPassword);
+
+                              setState(() {
+                                isChangingPassword = false;
+                              });
+
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF7ED321),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: isChangingPassword
+                                ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                                : Text(
+                              "Change Password",
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
+            );
+          },
         );
       },
     );

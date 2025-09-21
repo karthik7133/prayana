@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'EditProfileScreen.dart';
 import 'my_profile_page.dart';
 import '_OnboardingScreenState.dart';
-import 'LoginScreen.dart';
+
 void main() {
   runApp(const MyApp());
 }
