@@ -126,6 +126,15 @@ class _HomePageState extends State<HomePage> {
         });
         break;
     }
+
+    // Reset selection after a delay
+    Future.delayed(Duration(milliseconds: 200), () {
+      if (mounted) {
+        setState(() {
+          _selectedIndex = 0; // Reset to home
+        });
+      }
+    });
   }
 
   @override
@@ -646,41 +655,42 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
 
-                      const SizedBox(height: 120), // Space for fixed bottom navigation
+                      const SizedBox(height: 100), // Space for fixed bottom navigation
                     ],
                   ),
                 ),
               ),
             ),
 
-            // Fixed Bottom Navigation Bar
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+            // Fixed Bottom Navigation Bar - Same as ActiveBikeRidePage
+            Align(
+              alignment: Alignment.bottomCenter,
               child: Container(
-                color: Colors.transparent,
-                padding: const EdgeInsets.only(bottom: 20, top: 10, left: 20, right: 20),
-                child: Container(
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(35),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
+                height: 80,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false, // Don't add safe area padding on top
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNavItem(Icons.home, 0),
-                      _buildNavItem(Icons.history, 1),
-                      _buildNavItem(Icons.person_outline, 2),
+                      Expanded(
+                        child: _buildNavItem(Icons.home, "Home", 0),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(Icons.history, "History", 1),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(Icons.person_outline, "Profile", 2),
+                      ),
                     ],
                   ),
                 ),
@@ -692,22 +702,31 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index) {
     bool isActive = _selectedIndex == index;
 
     return GestureDetector(
       onTap: () => _onNavTap(index),
       child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: isActive ? Color(0xFF90E76A) : Colors.transparent,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Icon(
-          icon,
-          color: isActive ? Colors.white : Colors.grey.shade400,
-          size: 28,
+        height: 80,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isActive ? Color(0xFF65DB47) : Colors.grey.shade400,
+              size: 28,
+            ),
+            SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Color(0xFF65DB47) : Colors.grey.shade400,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );

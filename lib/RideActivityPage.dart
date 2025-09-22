@@ -425,11 +425,9 @@ class _ActiveBikeRidePageState extends State<ActiveBikeRidePage> {
             ),
           ),
 
-          // Fixed Bottom Navigation Bar - Stuck to bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
+          // Fixed Bottom Navigation Bar - Completely flush to bottom
+          Align(
+            alignment: Alignment.bottomCenter,
             child: Container(
               height: 80,
               width: double.infinity,
@@ -443,18 +441,21 @@ class _ActiveBikeRidePageState extends State<ActiveBikeRidePage> {
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildNavItem(Icons.home, "Home", 0),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(Icons.history, "History", 1),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(Icons.person_outline, "Profile", 2),
-                  ),
-                ],
+              child: SafeArea(
+                top: false, // Don't add safe area padding on top
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildNavItem(Icons.home, "Home", 0),
+                    ),
+                    Expanded(
+                      child: _buildNavItem(Icons.history, "History", 1),
+                    ),
+                    Expanded(
+                      child: _buildNavItem(Icons.person_outline, "Profile", 2),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
