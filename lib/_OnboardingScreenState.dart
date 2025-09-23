@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   final List<OnboardingData> _slides = [
     OnboardingData(
-      image: 'assets/images/bike_ride_1.png', // Replace with your actual image
+      image: 'assets/images/bike_ride_1.png',
       title: 'Lets choose your',
       highlight: 'fav bike',
       subtitle: 'and enjoy ride',
@@ -82,7 +82,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     });
   }
 
-  // NAVIGATION FUNCTION - This handles the slide completion
   void _navigateToLogin() {
     Navigator.pushReplacement(
       context,
@@ -101,66 +100,89 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
+
+    // Responsive calculations
+    final bool isSmallScreen = screenHeight < 700;
+    final bool isMediumScreen = screenHeight >= 700 && screenHeight < 850;
+    final bool isTablet = screenWidth > 600;
+
+    // Dynamic sizing based on screen size
+    final imageSize = isSmallScreen ? screenWidth * 0.6 :
+    isMediumScreen ? screenWidth * 0.65 :
+    screenWidth * 0.7;
+    final titleFontSize = isSmallScreen ? 22.0 :
+    isMediumScreen ? 26.0 :
+    28.0;
+    final descriptionFontSize = isSmallScreen ? 14.0 : 16.0;
+    final iconSize = isSmallScreen ? 80.0 :
+    isMediumScreen ? 100.0 :
+    120.0;
+
     return Scaffold(
       backgroundColor: Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top section with images
-            Expanded(
-              flex: 3,
-              child: Container(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
-                  itemCount: _slides.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 60),
-                      child: Center(
-                        child: Hero(
-                          tag: 'onboarding_image_$index',
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 300),
-                            width: 300,
-                            height: 300,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 25,
-                                  offset: Offset(0, 15),
-                                  spreadRadius: 0,
+      body: Column(
+        children: [
+          // Top section with images - takes up more space now
+          Expanded(
+            flex: 6,
+            child: Container(
+              width: double.infinity,
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentIndex = index;
+                  });
+                },
+                itemCount: _slides.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.1,
+                      vertical: isSmallScreen ? 20 : 40,
+                    ),
+                    child: Center(
+                      child: Hero(
+                        tag: 'onboarding_image_$index',
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 300),
+                          width: imageSize.clamp(200, 350),
+                          height: imageSize.clamp(200, 350),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 25,
+                                offset: Offset(0, 15),
+                                spreadRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.orange.shade200,
+                                    Colors.orange.shade400,
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.orange.shade200,
-                                      Colors.orange.shade400,
-                                    ],
-                                  ),
-                                ),
-                                child: Center(
-                                  child: AnimatedSwitcher(
-                                    duration: Duration(milliseconds: 300),
-                                    child: Icon(
-                                      Icons.directions_bike,
-                                      key: ValueKey(index),
-                                      size: 120,
-                                      color: Colors.white,
-                                    ),
+                              ),
+                              child: Center(
+                                child: AnimatedSwitcher(
+                                  duration: Duration(milliseconds: 300),
+                                  child: Icon(
+                                    Icons.directions_bike,
+                                    key: ValueKey(index),
+                                    size: iconSize,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
@@ -168,168 +190,181 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           ),
                         ),
                       ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // Dot indicators
+          Container(
+            margin: EdgeInsets.only(bottom: isSmallScreen ? 10 : 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _slides.length,
+                    (index) => GestureDetector(
+                  onTap: () {
+                    _stopAutoScroll();
+                    _pageController.animateToPage(
+                      index,
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
                     );
+                    _resumeAutoScroll();
                   },
-                ),
-              ),
-            ),
-
-            // Dot indicators
-            Container(
-              margin: EdgeInsets.only(bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _slides.length,
-                      (index) => GestureDetector(
-                    onTap: () {
-                      _stopAutoScroll();
-                      _pageController.animateToPage(
-                        index,
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      );
-                      _resumeAutoScroll();
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      margin: EdgeInsets.symmetric(horizontal: 4),
-                      height: 8,
-                      width: _currentIndex == index ? 24 : 8,
-                      decoration: BoxDecoration(
-                        color: _currentIndex == index ? Colors.black : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    margin: EdgeInsets.symmetric(horizontal: 4),
+                    height: 8,
+                    width: _currentIndex == index ? 24 : 8,
+                    decoration: BoxDecoration(
+                      color: _currentIndex == index
+                          ? Colors.black
+                          : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
               ),
             ),
+          ),
 
-            // Bottom content section
-            Expanded(
-              flex: 2,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(0),
-                    topRight: Radius.circular(0),
-                  ),
+          // Bottom content section - takes remaining space
+          Expanded(
+            flex: 5,
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(0),
+                  topRight: Radius.circular(0),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Title section with animation
-                    AnimatedSwitcher(
-                      duration: Duration(milliseconds: 500),
-                      transitionBuilder: (Widget child, Animation<double> animation) {
-                        return SlideTransition(
-                          position: animation.drive(
-                            Tween(begin: Offset(0.0, 0.3), end: Offset(0.0, 0.0)),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isTablet ? 40 : 24,
+                vertical: isSmallScreen ? 16 : 20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Title and description section
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Title section with animation
+                        AnimatedSwitcher(
+                          duration: Duration(milliseconds: 500),
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            return SlideTransition(
+                              position: animation.drive(
+                                Tween(begin: Offset(0.0, 0.3), end: Offset(0.0, 0.0)),
+                              ),
+                              child: FadeTransition(opacity: animation, child: child),
+                            );
+                          },
+                          child: Column(
+                            key: ValueKey(_currentIndex),
+                            children: [
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: _slides[_currentIndex].title,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '\n${_slides[_currentIndex].highlight}',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: ' ${_slides[_currentIndex].subtitle}',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'with ',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: _slides[_currentIndex].name,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF65DB47),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          child: FadeTransition(opacity: animation, child: child),
-                        );
-                      },
-                      child: Column(
-                        key: ValueKey(_currentIndex),
-                        children: [
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: _slides[_currentIndex].title,
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 28, // Same size for all
-                                    fontWeight: FontWeight.w700, // Bold
-                                    color: Colors.black87,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '\n${_slides[_currentIndex].highlight}',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 28, // Same size
-                                    fontWeight: FontWeight.w700, // Bold
-                                    color: Colors.black87,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: ' ${_slides[_currentIndex].subtitle}',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 28, // Same size
-                                    fontWeight: FontWeight.w700, // Bold
-                                    color: Colors.black87,
-                                    height: 1.2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'with ',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 28, // Same size as above text
-                                    fontWeight: FontWeight.w700, // Bold
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: _slides[_currentIndex].name,
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 28, // Same size as above text
-                                    fontWeight: FontWeight.w700, // Bold
-                                    color: Color(0xFF65DB47), // Your specified green color
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Description with animation
-                    AnimatedSwitcher(
-                      duration: Duration(milliseconds: 500),
-                      child: Text(
-                        _slides[_currentIndex].description,
-                        key: ValueKey('${_currentIndex}_description'),
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16, // H2 size
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey.shade600,
-                          height: 1.4,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
+
+                        SizedBox(height: isSmallScreen ? 12 : 16),
+
+                        // Description with animation
+                        AnimatedSwitcher(
+                          duration: Duration(milliseconds: 500),
+                          child: Text(
+                            _slides[_currentIndex].description,
+                            key: ValueKey('${_currentIndex}_description'),
+                            style: GoogleFonts.montserrat(
+                              fontSize: descriptionFontSize,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey.shade600,
+                              height: 1.4,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
 
-                    Spacer(),
-
-                    // Slidable button - UPDATED WITH NAVIGATION CALLBACK
-                    SlideToActionButton(
-                      onSlideComplete: _navigateToLogin, // Pass the navigation function
+                  // Slidable button at the bottom
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 0),
+                    child: SlideToActionButton(
+                      onSlideComplete: _navigateToLogin,
                     ),
-
-                    SizedBox(height: 20),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -366,95 +401,120 @@ class SlideToActionButton extends StatefulWidget {
 }
 
 class _SlideToActionButtonState extends State<SlideToActionButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   double _dragPosition = 0.0;
   late double _maxDrag;
   bool _isSliding = false;
   bool _isCompleted = false;
-  late AnimationController _animationController;
+  late AnimationController _scaleAnimationController;
+  late AnimationController _slideBackAnimationController;
   late Animation<double> _slideBackAnimation;
   late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: Duration(milliseconds: 300),
+
+    _scaleAnimationController = AnimationController(
+      duration: Duration(milliseconds: 200),
       vsync: this,
     );
+
+    _slideBackAnimationController = AnimationController(
+      duration: Duration(milliseconds: 400),
+      vsync: this,
+    );
+
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _scaleAnimationController, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _scaleAnimationController.dispose();
+    _slideBackAnimationController.dispose();
     super.dispose();
   }
 
   void _onPanStart(DragStartDetails details) {
     if (_isCompleted) return;
+
     _isSliding = true;
-    _animationController.stop();
+    _scaleAnimationController.stop();
+    _slideBackAnimationController.stop();
+    _slideBackAnimationController.reset();
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (_isCompleted) return;
+
     setState(() {
       _dragPosition += details.delta.dx;
       _dragPosition = _dragPosition.clamp(0.0, _maxDrag);
     });
 
-    // Scale effect when near completion
     if (_dragPosition > _maxDrag * 0.7) {
-      if (!_animationController.isAnimating) {
-        _animationController.forward();
+      if (!_scaleAnimationController.isAnimating && !_scaleAnimationController.isCompleted) {
+        _scaleAnimationController.forward();
       }
     } else {
-      if (_animationController.isCompleted) {
-        _animationController.reverse();
+      if (_scaleAnimationController.isCompleted || _scaleAnimationController.isAnimating) {
+        _scaleAnimationController.reverse();
       }
     }
   }
 
   void _onPanEnd(DragEndDetails details) {
     if (_isCompleted) return;
+
     _isSliding = false;
 
-    // Check if dragged far enough (75% of the way)
     if (_dragPosition > _maxDrag * 0.75) {
-      // Complete the slide
       _isCompleted = true;
+      _scaleAnimationController.forward();
+
       setState(() {
         _dragPosition = _maxDrag;
       });
 
-      // Haptic feedback if available
-      // HapticFeedback.heavyImpact();
-
-      // Call the completion callback after a short delay
       Future.delayed(Duration(milliseconds: 300), () {
         widget.onSlideComplete();
       });
     } else {
-      // Slide back to start with smooth animation
+      _scaleAnimationController.reverse();
+
       _slideBackAnimation = Tween<double>(
         begin: _dragPosition,
         end: 0.0,
       ).animate(CurvedAnimation(
-        parent: _animationController,
+        parent: _slideBackAnimationController,
         curve: Curves.easeOutCubic,
       ));
 
-      _slideBackAnimation.addListener(() {
-        setState(() {
-          _dragPosition = _slideBackAnimation.value;
-        });
-      });
+      _slideBackAnimationController.removeStatusListener(_animationStatusListener);
+      _slideBackAnimation.removeListener(_slideBackListener);
 
-      _animationController.reset();
-      _animationController.forward();
+      _slideBackAnimation.addListener(_slideBackListener);
+      _slideBackAnimationController.addStatusListener(_animationStatusListener);
+
+      _slideBackAnimationController.reset();
+      _slideBackAnimationController.forward();
+    }
+  }
+
+  void _slideBackListener() {
+    if (mounted) {
+      setState(() {
+        _dragPosition = _slideBackAnimation.value;
+      });
+    }
+  }
+
+  void _animationStatusListener(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _slideBackAnimation.removeListener(_slideBackListener);
+      _slideBackAnimationController.removeStatusListener(_animationStatusListener);
     }
   }
 
@@ -462,7 +522,7 @@ class _SlideToActionButtonState extends State<SlideToActionButton>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        _maxDrag = constraints.maxWidth - 64; // Button width is 64
+        _maxDrag = constraints.maxWidth - 64;
 
         return Container(
           width: double.infinity,
@@ -473,9 +533,8 @@ class _SlideToActionButtonState extends State<SlideToActionButton>
           ),
           child: Stack(
             children: [
-              // Progress indicator
               AnimatedContainer(
-                duration: Duration(milliseconds: 100),
+                duration: Duration(milliseconds: _isSliding ? 0 : 100),
                 width: _dragPosition + 64,
                 height: 64,
                 decoration: BoxDecoration(
@@ -483,7 +542,6 @@ class _SlideToActionButtonState extends State<SlideToActionButton>
                   borderRadius: BorderRadius.circular(32),
                 ),
               ),
-              // Background text
               Center(
                 child: AnimatedOpacity(
                   opacity: _dragPosition < _maxDrag * 0.3 ? 1.0 : 0.0,
@@ -494,7 +552,7 @@ class _SlideToActionButtonState extends State<SlideToActionButton>
                       Text(
                         'Swipe to get started',
                         style: GoogleFonts.montserrat(
-                          fontSize: 14, // P1 size
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: Colors.grey.shade700,
                         ),
@@ -509,9 +567,7 @@ class _SlideToActionButtonState extends State<SlideToActionButton>
                   ),
                 ),
               ),
-              // Draggable button
-              AnimatedPositioned(
-                duration: _isSliding ? Duration.zero : Duration(milliseconds: 200),
+              Positioned(
                 left: 4 + _dragPosition,
                 top: 4,
                 child: ScaleTransition(

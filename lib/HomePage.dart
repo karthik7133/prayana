@@ -3,6 +3,7 @@ import 'scanner_page.dart';
 import 'my_profile_page.dart';
 import 'token_service.dart';
 import 'LoginScreen.dart';
+import 'RideActivityPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -106,8 +107,13 @@ class _HomePageState extends State<HomePage> {
       // Home - already here
         break;
       case 1:
-      // History
-        print('History tapped');
+      // History -> Navigate to ActiveBikeRidePage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ActiveBikeRidePage(),
+          ),
+        );
         break;
       case 2:
       // Profile
