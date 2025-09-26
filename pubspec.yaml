@@ -1,0 +1,36 @@
+name: prayana_electric
+description: "A cross platform app for Prayana E-bikes."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  crypto: ^3.0.6
+  encrypt: ^5.0.3
+  mobile_scanner: ^7.0.1
+  permission_handler: ^12.0.1
+  lottie: ^3.3.2
+  carousel_slider: ^5.1.1
+  intl: ^0.20.2
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  google_fonts: ^6.1.0
+  http: ^1.2.0
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+     - assets/images/
+     - assets/animations/
